@@ -1,12 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "NewSnakePawn.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Components/SceneComponent.h"
+#include "Camera/CameraComponent.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "EnhancedInputComponent.h"
 // Sets default values
 ANewSnakePawn::ANewSnakePawn()
 {
@@ -46,6 +48,17 @@ void ANewSnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Started, this, &ANewSnakePawn::Turn);
+	}
+}
+
+void ANewSnakePawn::Turn(const FInputActionValue& Value)
+{
+	// Add movement in that direction
+	
+	AddActorLocalOffset(FVector(Value.Get<float>(), 0.0f, 0.0f), true);
 }
 
 UPROPERTY(EditAnywhere)
@@ -53,3 +66,6 @@ USceneComponent* VisibleComponent;
 
 UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 TObjectPtr<UInputMappingContext> InputMapping;
+
+UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+TObjectPtr<UInputAction> TurnAction;

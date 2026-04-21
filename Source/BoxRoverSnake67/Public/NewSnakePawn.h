@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Components/SceneComponent.h"
+#include "Camera/CameraComponent.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "EnhancedInputComponent.h"
 
 #include "NewSnakePawn.generated.h"
 
@@ -33,9 +35,14 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void Turn(const FInputActionValue& Value);
+
 	UPROPERTY(EditAnywhere)
 	USceneComponent* VisibleComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputMappingContext> InputMapping;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> TurnAction;
 };
