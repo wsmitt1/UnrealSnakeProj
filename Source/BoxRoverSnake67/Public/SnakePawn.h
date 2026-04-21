@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "BoxRoverPawn.generated.h"
+#include "SnakePawn.generated.h"
 
 UCLASS()
-class BOXROVERSNAKE67_API ABoxRoverPawn : public APawn
+class BOXROVERSNAKE67_API ASnakePawn : public APawn
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
-	ABoxRoverPawn();
+	ASnakePawn();
 
 protected:
 	// Called when the game starts or when spawned
