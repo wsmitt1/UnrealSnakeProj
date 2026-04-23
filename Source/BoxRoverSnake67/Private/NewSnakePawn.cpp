@@ -10,17 +10,18 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/SphereComponent.h"
+
 // Sets default values
+
 ANewSnakePawn::ANewSnakePawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
-	// Properties
-
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SnakeRoot"));
-	
+	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("SnakeRoot"));
+	RootComponent = CollisionSphere;
 
 	// Attach our camera and visible object to our root component. Offset and rotate the camera.
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -54,7 +55,6 @@ void ANewSnakePawn::Tick(float DeltaTime)
 	FVector Movement = FVector(CurrentDirection.X, CurrentDirection.Y, 0.0f) * Speed * DeltaTime;
 
 	AddActorWorldOffset(Movement, true);
-
 }
 
 // Called to bind functionality to input
@@ -82,16 +82,3 @@ void ANewSnakePawn::Turn(const FInputActionValue& Value)
 
     //AddActorLocalOffset(FVector(CurrentDirection.X, 0.0f, 0.0f), true);
 }
-
-
-UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
-TObjectPtr<UInputMappingContext> InputMapping;
-
-UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
-TObjectPtr<UInputAction> TurnAction;
-UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
-float Speed;
-
-FVector2D CurrentDirection;
-
-UCameraComponent* Camera;

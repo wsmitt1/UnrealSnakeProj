@@ -11,18 +11,17 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/SphereComponent.h"
+
 
 // Provide an IntelliSense-only fallback for GENERATED_BODY() to avoid E0077
 // Visual Studio's IntelliSense defines __INTELLISENSE__; only in that case define a minimal macro.
 // This will not affect actual compilation by UnrealBuildTool.
-#ifdef __INTELLISENSE__
-#ifndef GENERATED_BODY
-#define GENERATED_BODY() \
-public:
-#endif
-#endif
+
 
 #include "NewSnakePawn.generated.h"
+
+class UStaticMeshComponent;
 
 class UCameraComponent;
 
@@ -40,7 +39,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere)
-	USceneComponent* VisibleComponent;
+	USphereComponent* CollisionSphere;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "¨Snake", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> VisibleComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputMappingContext> InputMapping;
