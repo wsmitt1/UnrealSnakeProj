@@ -12,6 +12,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/SpringArmComponent.h" // Added include for USpringArmComponent
+
 
 
 // Provide an IntelliSense-only fallback for GENERATED_BODY() to avoid E0077
@@ -40,6 +42,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	USphereComponent* CollisionSphere;
+
+	UPROPERTY(EditAnywhere)
+	USpringArmComponent* SpringArm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "¨Snake", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> VisibleComponent;

@@ -11,6 +11,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
 
@@ -23,11 +24,17 @@ ANewSnakePawn::ANewSnakePawn()
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("SnakeRoot"));
 	RootComponent = CollisionSphere;
 
-	// Attach our camera and visible object to our root component. Offset and rotate the camera.
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->TargetArmLength = 400.0f; // Distance from the pawn
+	SpringArm->bUsePawnControlRotation = false; // Don't rotate the arm based on the controller
+	SpringArm->SetUsingAbsoluteRotation(true);
+	SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f)); // Look down at the pawn
+	SpringArm->bDoCollisionTest = false; // Don't let the arm adjust based on collisions
+
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(RootComponent);
-	Camera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
-	Camera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+
 	VisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisibleComponent"));
 	VisibleComponent->SetupAttachment(RootComponent);
 }
