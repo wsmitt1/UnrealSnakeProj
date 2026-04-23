@@ -9,6 +9,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 // Sets default values
 ANewSnakePawn::ANewSnakePawn()
 {
@@ -18,14 +19,15 @@ ANewSnakePawn::ANewSnakePawn()
 
 	// Properties
 
-
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SnakeRoot"));
-	UCameraComponent* Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	VisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisibleComponent"));
+	
+
 	// Attach our camera and visible object to our root component. Offset and rotate the camera.
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(RootComponent);
 	Camera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
 	Camera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+	VisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisibleComponent"));
 	VisibleComponent->SetupAttachment(RootComponent);
 }
 
@@ -33,6 +35,13 @@ ANewSnakePawn::ANewSnakePawn()
 void ANewSnakePawn::BeginPlay()
 {
 	Super::BeginPlay();
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(InputMapping, 0);
+		}
+	}
 	
 }
 
@@ -40,6 +49,11 @@ void ANewSnakePawn::BeginPlay()
 void ANewSnakePawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Scale movement by Speed and DeltaTime for smooth motion
+	FVector Movement = FVector(CurrentDirection.X, CurrentDirection.Y, 0.0f) * Speed * DeltaTime;
+
+	AddActorWorldOffset(Movement, true);
 
 }
 
@@ -56,16 +70,28 @@ void ANewSnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 void ANewSnakePawn::Turn(const FInputActionValue& Value)
 {
-	// Add movement in that direction
-	
-	AddActorLocalOffset(FVector(Value.Get<float>(), 0.0f, 0.0f), true);
+    // Extract the Vector2 input from the action value
+    const FVector2D Input2D = Value.Get<FVector2D>();
+
+    // Update the pawn's current input direction (store normalized direction if desired)
+    // If you want raw input keep Input2D; to keep only direction use Input2D.GetSafeNormal()
+	if (Input2D.IsZero() == false) {
+		CurrentDirection = Input2D.GetSafeNormal(); // requires CurrentDirection declared in header
+	}
+    
+
+    //AddActorLocalOffset(FVector(CurrentDirection.X, 0.0f, 0.0f), true);
 }
 
-UPROPERTY(EditAnywhere)
-USceneComponent* VisibleComponent;
 
 UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 TObjectPtr<UInputMappingContext> InputMapping;
 
 UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 TObjectPtr<UInputAction> TurnAction;
+UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
+float Speed;
+
+FVector2D CurrentDirection;
+
+UCameraComponent* Camera;
