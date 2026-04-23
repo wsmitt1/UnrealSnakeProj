@@ -59,7 +59,7 @@ void ANewSnakePawn::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Scale movement by Speed and DeltaTime for smooth motion
-	FVector Movement = FVector(CurrentDirection.X, CurrentDirection.Y, 0.0f) * Speed * DeltaTime;
+	FVector Movement = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f) * Speed * DeltaTime; // i dont know what kind of black magic this is but it works so im not gonna question it
 
 	AddActorWorldOffset(Movement, true);
 }
@@ -83,9 +83,11 @@ void ANewSnakePawn::Turn(const FInputActionValue& Value)
     // Update the pawn's current input direction (store normalized direction if desired)
     // If you want raw input keep Input2D; to keep only direction use Input2D.GetSafeNormal()
 	if (Input2D.IsZero() == false) {
-		CurrentDirection = Input2D.GetSafeNormal(); // requires CurrentDirection declared in header
+		if (Input2D.Length() < 1.0f) { // Ignore diagonals: may be changed later 
+			CurrentDirection = Input2D.GetSafeNormal(); // requires CurrentDirection declared in header
+
+		}
 	}
-    
 
     //AddActorLocalOffset(FVector(CurrentDirection.X, 0.0f, 0.0f), true);
 }

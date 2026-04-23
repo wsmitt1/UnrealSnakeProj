@@ -60,6 +60,9 @@ protected:
 
 	UCameraComponent* Camera;
 
+	FVector2D CurrentTargetedPosition;
+	FVector2D RegisteredPosition;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -72,4 +75,6 @@ public:
 
 
 	FVector2D CurrentDirection;
+
+
 };
