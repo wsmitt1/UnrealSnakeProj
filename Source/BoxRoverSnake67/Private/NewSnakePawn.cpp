@@ -164,7 +164,7 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			if (TailSegments.Num() > 0 && OtherActor != TailSegments[0])
 			{
 				// GAME OVER LOGIC
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("KILLED BY TAIL"));
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("KILLED BY TAIL")); // some stuff still needs to be not buns for this to work, but this is the general idea. We want to make sure the player can't just turn 180 and eat their neck and be fine, but we also don't want them to lose by just brushing against the first segment as they turn.
 				// Destroy() or ResetGame()
 			}
 		}
