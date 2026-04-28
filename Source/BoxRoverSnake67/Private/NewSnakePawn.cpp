@@ -209,7 +209,7 @@ void ANewSnakePawn::SpawnTailSegment()
 
 		// Add logic tracking for the new segment
 		// It starts exactly where the last segment currently is
-		FVector LastPos = SegmentLogicPositions.Last();
+		FVector LastPos = SegmentPrevLogicPositions.Last();
 		SegmentLogicPositions.Add(LastPos);
 		SegmentPrevLogicPositions.Add(LastPos);
 
