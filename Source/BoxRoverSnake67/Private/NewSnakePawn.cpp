@@ -72,30 +72,29 @@ void ANewSnakePawn::BeginPlay()
 	// Start at our current grid position
 	LogicPrevPosition = GetActorLocation();
 	LogicTargetPosition = LogicPrevPosition;
-	MovementInterpolation = 1.0f; // Start "arrived"
+	MovementInterpolation = 1.0f; 
 
-	// Inside BeginPlay
+
 	SegmentLogicPositions.Add(LogicPrevPosition);
 	SegmentPrevLogicPositions.Add(LogicPrevPosition);
 }
 
 void ANewSnakePawn::SelectNewTargetTile()
 {
-	// 1. Update "Previous" record for the whole snake
+
 	SegmentPrevLogicPositions = SegmentLogicPositions;
 
-	// 2. Move the Head Logic (Index 0)
+
 	FVector Direction3D = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f); // Swapped Y and X because i dont fucking know man it just works
 	SegmentLogicPositions[0] += (Direction3D * 100.0f);
 
-	// 3. Move the Tail Logic
-	// Each segment moves to where the segment in front of it WAS
+
 	for (int32 i = 1; i < SegmentLogicPositions.Num(); i++)
 	{
 		SegmentLogicPositions[i] = SegmentPrevLogicPositions[i - 1];
 	}
 
-	// Reset interpolation for the smooth slide
+
 	MovementInterpolation = 0.0f;
 	LogicPrevPosition = SegmentPrevLogicPositions[0];
 	LogicTargetPosition = SegmentLogicPositions[0];
@@ -105,11 +104,11 @@ void ANewSnakePawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Don't move if there is no direction set
+
 	if (CurrentDirection.IsZero()) return;
 	MovementInterpolation += (Speed / 100.0f) * DeltaTime;
 
-	// 2. If we've reached or passed the target tile, find the next one
+
 	if (MovementInterpolation >= 1.0f)
 	{
 		SelectNewTargetTile();
