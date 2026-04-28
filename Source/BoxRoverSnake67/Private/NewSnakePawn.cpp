@@ -17,7 +17,9 @@
 
 // Custom class includes
 #include "Fruit.h"
+#include "FruitSpawner.h"
 #include "SnakePlayerState.h"
+#include "GridManager.h"
 
 // Sets default values
 
@@ -66,17 +68,54 @@ void ANewSnakePawn::BeginPlay()
 		}
 	}
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ANewSnakePawn::OnOverlapBegin);
+	float TileSize = Cast<AGridManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGridManager::StaticClass()))->TileSize;
+	// Start at our current grid position
+	LogicPrevPosition = GetActorLocation();
+	LogicTargetPosition = LogicPrevPosition;
+	MovementInterpolation = 1.0f; // Start "arrived"
 }
 
 // Called every frame
+void ANewSnakePawn::SelectNewTargetTile()
+{
+	// 1. Snap to the previous target to prevent "drift"
+	LogicPrevPosition = LogicTargetPosition;
+
+	FVector Direction3D = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f);
+
+	// 3. Calculate the next tile center (assuming TileSize is 100)
+	
+	LogicTargetPosition = LogicPrevPosition + (Direction3D * TileSize);
+
+	// 4. Reset the interpolation progress
+	MovementInterpolation = 0.0f;
+
+	// [TAIL LOGIC WILL GO HERE LATER]
+}
+
 void ANewSnakePawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Scale movement by Speed and DeltaTime for smooth motion
-	FVector Movement = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f) * Speed * DeltaTime;
+	// Don't move if there is no direction set
+	if (CurrentDirection.IsZero()) return;
 
-	AddActorWorldOffset(Movement, false);
+	// 1. Advance the progress (Alpha)
+	// Formula: (Speed / Distance) * Time
+	MovementInterpolation += (Speed / 100.0f) * DeltaTime;
+
+	// 2. If we've reached or passed the target tile, find the next one
+	if (MovementInterpolation >= 1.0f)
+	{
+		SelectNewTargetTile();
+	}
+
+	// 3. The "Smooth Slide"
+	// We Lerp (Linear Interpolate) between the two grid centers
+	FVector NewSmoothLocation = FMath::Lerp(LogicPrevPosition, LogicTargetPosition, MovementInterpolation);
+
+	// 4. Update position with Sweep enabled to catch wall collisions
+	SetActorLocation(NewSmoothLocation, true);
 }
 
 // Called to bind functionality to input
@@ -159,6 +198,12 @@ void ANewSnakePawn::EatFruit(AActor* FruitActor)
 	}
 
 	FruitActor->Destroy();
+
+	AFruitSpawner* Spawner = Cast<AFruitSpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AFruitSpawner::StaticClass()));
+	if (Spawner)
+	{
+		Spawner->SpawnNewFruit();
+	}
 	// 3. Trigger Growth 
 	// This is where you'll eventually spawn a new tail segment
 }

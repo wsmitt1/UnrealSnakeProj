@@ -40,6 +40,17 @@ public:
 
 
 	ANewSnakePawn();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	void Turn(const FInputActionValue& Value);
+
+
+
+	FVector2D CurrentDirection;
 
 protected:
 	// Called when the game starts or when spawned
@@ -82,18 +93,13 @@ protected:
 	FVector2D CurrentTargetedPosition;
 	FVector2D RegisteredPosition;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+private:
+	FVector LogicPrevPosition;   // The center of the tile we just left
+	FVector LogicTargetPosition; // The center of the tile we are moving toward
+	float MovementInterpolation; // Progress from 0.0 to 1.0
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void SelectNewTargetTile();
 
-	void Turn(const FInputActionValue& Value);
-
-
-
-	FVector2D CurrentDirection;
-
+	float TileSize;
 
 };
