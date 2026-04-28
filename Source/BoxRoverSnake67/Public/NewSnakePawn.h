@@ -58,6 +58,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
 	float Speed;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
+	float GridUnitSize;
+
 	UCameraComponent* Camera;
 
 	FVector2D CurrentTargetedPosition;
