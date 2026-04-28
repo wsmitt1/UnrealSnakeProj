@@ -62,7 +62,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* SpringArm;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "¨Snake", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "¨nake", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> VisibleComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
@@ -77,6 +77,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> LoseScreenClass;
 
+	UPROPERTY(EditAnywhere, Category = "Snake")
+    TSubclassOf<AActor> TailClass;
+
+    // The list of all spawned tail segments
+    UPROPERTY()
+    TArray<AActor*> TailSegments;
+
+    // Stores the sequence of logic positions for segments to follow
+    TArray<FVector> TailPathHistory;
+
+
 	UFUNCTION()
 	void ShowLoseScreen();
 
@@ -88,10 +99,20 @@ protected:
 	UFUNCTION()
 	void EatFruit(AActor* FruitActor);
 
+
+	void SpawnTailSegment();
+	void UpdateTailPositions();
+
 	UCameraComponent* Camera;
 
 	FVector2D CurrentTargetedPosition;
 	FVector2D RegisteredPosition;
+
+	// Index 0 = Head, Index 1 = Tail 0, Index 2 = Tail 1...
+	TArray<FVector> SegmentLogicPositions;
+
+	// We need to know where they were in the previous step to Lerp correctly
+	TArray<FVector> SegmentPrevLogicPositions;
 
 private:
 	FVector LogicPrevPosition;   // The center of the tile we just left
@@ -100,6 +121,6 @@ private:
 
 	void SelectNewTargetTile();
 
-	float TileSize;
+	float snakeTileSize;
 
 };

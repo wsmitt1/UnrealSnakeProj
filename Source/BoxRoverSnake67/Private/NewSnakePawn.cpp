@@ -73,24 +73,32 @@ void ANewSnakePawn::BeginPlay()
 	LogicPrevPosition = GetActorLocation();
 	LogicTargetPosition = LogicPrevPosition;
 	MovementInterpolation = 1.0f; // Start "arrived"
+
+	// Inside BeginPlay
+	SegmentLogicPositions.Add(LogicPrevPosition);
+	SegmentPrevLogicPositions.Add(LogicPrevPosition);
 }
 
-// Called every frame
 void ANewSnakePawn::SelectNewTargetTile()
 {
-	// 1. Snap to the previous target to prevent "drift"
-	LogicPrevPosition = LogicTargetPosition;
+	// 1. Update "Previous" record for the whole snake
+	SegmentPrevLogicPositions = SegmentLogicPositions;
 
-	FVector Direction3D = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f);
+	// 2. Move the Head Logic (Index 0)
+	FVector Direction3D = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f); // Swapped Y and X because i dont fucking know man it just works
+	SegmentLogicPositions[0] += (Direction3D * 100.0f);
 
-	// 3. Calculate the next tile center (assuming TileSize is 100)
-	
-	LogicTargetPosition = LogicPrevPosition + (Direction3D * TileSize);
+	// 3. Move the Tail Logic
+	// Each segment moves to where the segment in front of it WAS
+	for (int32 i = 1; i < SegmentLogicPositions.Num(); i++)
+	{
+		SegmentLogicPositions[i] = SegmentPrevLogicPositions[i - 1];
+	}
 
-	// 4. Reset the interpolation progress
+	// Reset interpolation for the smooth slide
 	MovementInterpolation = 0.0f;
-
-	// [TAIL LOGIC WILL GO HERE LATER]
+	LogicPrevPosition = SegmentPrevLogicPositions[0];
+	LogicTargetPosition = SegmentLogicPositions[0];
 }
 
 void ANewSnakePawn::Tick(float DeltaTime)
@@ -99,9 +107,6 @@ void ANewSnakePawn::Tick(float DeltaTime)
 
 	// Don't move if there is no direction set
 	if (CurrentDirection.IsZero()) return;
-
-	// 1. Advance the progress (Alpha)
-	// Formula: (Speed / Distance) * Time
 	MovementInterpolation += (Speed / 100.0f) * DeltaTime;
 
 	// 2. If we've reached or passed the target tile, find the next one
@@ -110,12 +115,21 @@ void ANewSnakePawn::Tick(float DeltaTime)
 		SelectNewTargetTile();
 	}
 
-	// 3. The "Smooth Slide"
-	// We Lerp (Linear Interpolate) between the two grid centers
 	FVector NewSmoothLocation = FMath::Lerp(LogicPrevPosition, LogicTargetPosition, MovementInterpolation);
 
-	// 4. Update position with Sweep enabled to catch wall collisions
 	SetActorLocation(NewSmoothLocation, true);
+
+	for (int32 i = 0; i < TailSegments.Num(); i++)
+	{
+		// TailSegments[0] corresponds to SegmentLogicPositions[1]
+		int32 LogicIndex = i + 1;
+
+		if (TailSegments.IsValidIndex(i) && SegmentLogicPositions.IsValidIndex(LogicIndex))
+		{
+			FVector NewSegLoc = FMath::Lerp(SegmentPrevLogicPositions[LogicIndex], SegmentLogicPositions[LogicIndex], MovementInterpolation);
+			TailSegments[i]->SetActorLocation(NewSegLoc);
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -171,6 +185,23 @@ void ANewSnakePawn::ShowLoseScreen()
 	}
 }
 
+void ANewSnakePawn::SpawnTailSegment()
+{
+	// Spawn the actor at the very last segment's position (or head if it's the first)
+	FVector SpawnLoc = (TailSegments.Num() == 0) ? GetActorLocation() : TailSegments.Last()->GetActorLocation();
+
+	AActor* NewSegment = GetWorld()->SpawnActor<AActor>(TailClass, SpawnLoc, FRotator::ZeroRotator);
+	if (NewSegment)
+	{
+		TailSegments.Add(NewSegment);
+
+		// Add logic tracking for the new segment
+		// It starts exactly where the last segment currently is
+		FVector LastPos = SegmentLogicPositions.Last();
+		SegmentLogicPositions.Add(LastPos);
+		SegmentPrevLogicPositions.Add(LastPos);
+	}
+}
 void ANewSnakePawn::Turn(const FInputActionValue& Value)
 {
 
@@ -198,13 +229,13 @@ void ANewSnakePawn::EatFruit(AActor* FruitActor)
 	}
 
 	FruitActor->Destroy();
-
+	
 	AFruitSpawner* Spawner = Cast<AFruitSpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AFruitSpawner::StaticClass()));
 	if (Spawner)
 	{
 		Spawner->SpawnNewFruit();
 	}
-	// 3. Trigger Growth 
-	// This is where you'll eventually spawn a new tail segment
+	
+	SpawnTailSegment();
 }
 
