@@ -150,12 +150,23 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	if (OtherActor && OtherActor != this)
 	{
 		if (OtherActor->ActorHasTag(FName("Wall"))) {
-			UE_LOG(LogTemp, Warning, TEXT("Collided with Wall"));
+			UE_LOG(LogTemp, Warning, TEXT("Collided with Wall or Tail"));
 			ShowLoseScreen();
 		}
 		else if (OtherActor->IsA(AFruit::StaticClass()))
 		{
 			EatFruit(OtherActor);
+		}
+		else if (OtherActor->IsA(TailClass))
+		{
+			// 2. Is it NOT the first segment (the neck)?
+			// We check index 0 because that's the one usually "touching" the head
+			if (TailSegments.Num() > 0 && OtherActor != TailSegments[0])
+			{
+				// GAME OVER LOGIC
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("KILLED BY TAIL"));
+				// Destroy() or ResetGame()
+			}
 		}
 	}
 }
@@ -194,11 +205,15 @@ void ANewSnakePawn::SpawnTailSegment()
 	{
 		TailSegments.Add(NewSegment);
 
+		NewSegment->Tags.Add(FName("TailSegment"));
+
 		// Add logic tracking for the new segment
 		// It starts exactly where the last segment currently is
 		FVector LastPos = SegmentLogicPositions.Last();
 		SegmentLogicPositions.Add(LastPos);
 		SegmentPrevLogicPositions.Add(LastPos);
+
+
 	}
 }
 void ANewSnakePawn::Turn(const FInputActionValue& Value)
