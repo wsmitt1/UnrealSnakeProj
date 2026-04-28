@@ -15,6 +15,10 @@
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 
+// Custom class includes
+#include "Fruit.h"
+#include "SnakePlayerState.h"
+
 // Sets default values
 
 ANewSnakePawn::ANewSnakePawn()
@@ -97,6 +101,10 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			UE_LOG(LogTemp, Warning, TEXT("Collided with Wall"));
 			ShowLoseScreen();
 		}
+		else if (OtherActor->IsA(AFruit::StaticClass()))
+		{
+			EatFruit(OtherActor);
+		}
 	}
 }
 
@@ -126,19 +134,32 @@ void ANewSnakePawn::ShowLoseScreen()
 
 void ANewSnakePawn::Turn(const FInputActionValue& Value)
 {
-    // Extract the Vector2 input from the action value
+
     const FVector2D Input2D = Value.Get<FVector2D>();
 
-    // Update the pawn's current input direction (store normalized direction if desired)
-    // If you want raw input keep Input2D; to keep only direction use Input2D.GetSafeNormal()
+
 	if (Input2D.IsZero() == false) {
 		if (Input2D.Length() <= 1.0f) { // Ignore diagonals: may be changed later 
-			CurrentDirection = Input2D.GetSafeNormal(); // requires CurrentDirection declared in header
+			CurrentDirection = Input2D.GetSafeNormal(); 
 
 		}
 	}
 
-    //AddActorLocalOffset(FVector(CurrentDirection.X, 0.0f, 0.0f), true);
-}
 
+}
+void ANewSnakePawn::EatFruit(AActor* FruitActor)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Ate Fruit!"));
+
+	ASnakePlayerState* PS = Cast<ASnakePlayerState>(GetPlayerState());
+
+	if (PS)
+	{
+		PS->AddScore(Cast<AFruit>(FruitActor)->ScoreValue);
+	}
+
+	FruitActor->Destroy();
+	// 3. Trigger Growth 
+	// This is where you'll eventually spawn a new tail segment
+}
 

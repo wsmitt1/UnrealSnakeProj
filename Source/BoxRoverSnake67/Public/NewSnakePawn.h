@@ -74,6 +74,9 @@ protected:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void EatFruit(AActor* FruitActor);
+
 	UCameraComponent* Camera;
 
 	FVector2D CurrentTargetedPosition;

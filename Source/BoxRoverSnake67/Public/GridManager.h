@@ -26,6 +26,9 @@ protected:
     int32 GridHeight = 12;
 
     UPROPERTY(EditAnywhere, Category = "Grid")
+	bool bGenerateOuterWalls = true;
+
+    UPROPERTY(EditAnywhere, Category = "Grid")
     float TileSize = 100.0f; // Distance between walls in poopy unral units
 
     void GenerateGrid();
