@@ -12,6 +12,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 
@@ -26,7 +28,7 @@ ANewSnakePawn::ANewSnakePawn()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 400.0f; // Distance from the pawn
+	SpringArm->TargetArmLength = 700.0f; // Distance from the pawn
 	SpringArm->bUsePawnControlRotation = false; // Don't rotate the arm based on the controller
 	SpringArm->SetUsingAbsoluteRotation(true);
 	SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f)); // Look down at the pawn
@@ -37,20 +39,29 @@ ANewSnakePawn::ANewSnakePawn()
 
 	VisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisibleComponent"));
 	VisibleComponent->SetupAttachment(RootComponent);
+
+	
 }
 
 // Called when the game starts or when spawned
 void ANewSnakePawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
+
+		PC->SetShowMouseCursor(false);
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(InputMapping, 0);
 		}
 	}
-	
+	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ANewSnakePawn::OnOverlapBegin);
 }
 
 // Called every frame
@@ -59,9 +70,9 @@ void ANewSnakePawn::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Scale movement by Speed and DeltaTime for smooth motion
-	FVector Movement = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f) * Speed * DeltaTime; // i dont know what kind of black magic this is but it works so im not gonna question it
+	FVector Movement = FVector(CurrentDirection.Y, CurrentDirection.X, 0.0f) * Speed * DeltaTime;
 
-	AddActorWorldOffset(Movement, true);
+	AddActorWorldOffset(Movement, false);
 }
 
 // Called to bind functionality to input
@@ -75,6 +86,44 @@ void ANewSnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	}
 }
 
+void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult& SweepResult)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Overlap Begin"));
+	if (OtherActor && OtherActor != this)
+	{
+		if (OtherActor->ActorHasTag(FName("Wall"))) {
+			UE_LOG(LogTemp, Warning, TEXT("Collided with Wall"));
+			ShowLoseScreen();
+		}
+	}
+}
+
+void ANewSnakePawn::ShowLoseScreen()
+{
+	Speed = 0.0f;
+
+	if (LoseScreenClass)
+	{
+		UUserWidget* LoseWidget = CreateWidget<UUserWidget>(GetWorld(), LoseScreenClass);
+		if (LoseWidget)
+		{
+			LoseWidget->AddToViewport();
+
+			// Give control to the mouse
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			if (PC)
+			{
+				PC->SetShowMouseCursor(true);
+				FInputModeUIOnly InputMode;
+				InputMode.SetWidgetToFocus(LoseWidget->TakeWidget());
+				PC->SetInputMode(InputMode);
+			}
+		}
+	}
+}
+
 void ANewSnakePawn::Turn(const FInputActionValue& Value)
 {
     // Extract the Vector2 input from the action value
@@ -83,7 +132,7 @@ void ANewSnakePawn::Turn(const FInputActionValue& Value)
     // Update the pawn's current input direction (store normalized direction if desired)
     // If you want raw input keep Input2D; to keep only direction use Input2D.GetSafeNormal()
 	if (Input2D.IsZero() == false) {
-		if (Input2D.Length() < 1.0f) { // Ignore diagonals: may be changed later 
+		if (Input2D.Length() <= 1.0f) { // Ignore diagonals: may be changed later 
 			CurrentDirection = Input2D.GetSafeNormal(); // requires CurrentDirection declared in header
 
 		}
@@ -91,3 +140,5 @@ void ANewSnakePawn::Turn(const FInputActionValue& Value)
 
     //AddActorLocalOffset(FVector(CurrentDirection.X, 0.0f, 0.0f), true);
 }
+
+

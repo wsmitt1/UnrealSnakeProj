@@ -13,6 +13,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h" // Added include for USpringArmComponent
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 
 
@@ -27,6 +29,7 @@ class UStaticMeshComponent;
 
 class UCameraComponent;
 
+
 UCLASS()
 class BOXROVERSNAKE67_API ANewSnakePawn : public APawn
 {
@@ -34,6 +37,8 @@ class BOXROVERSNAKE67_API ANewSnakePawn : public APawn
 
 public:
 	// Sets default values for this pawn's properties
+
+
 	ANewSnakePawn();
 
 protected:
@@ -58,8 +63,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
 	float Speed;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
-	float GridUnitSize;
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> LoseScreenClass;
+
+	UFUNCTION()
+	void ShowLoseScreen();
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
 
 	UCameraComponent* Camera;
 
