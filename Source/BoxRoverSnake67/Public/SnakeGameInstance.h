@@ -15,4 +15,7 @@ class USnakeGameInstance : public UGameInstance {
 public:
     UPROPERTY(BlueprintReadWrite, Category = "Game Settings")
     bool bIsMultiplayer = false;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Game Settings")
+    FString Difficulty = "Normal";
 };

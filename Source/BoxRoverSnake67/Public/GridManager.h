@@ -52,7 +52,7 @@ protected:
     // Helper to convert (X, Y) to a single array index
     int32 GetIndex(int32 X, int32 Y) const { return Y * GridWidth + X; }
 
-    void GenerateGrid();
+    void GenerateGrid(int32 PaddingThickness);
 
 
 };

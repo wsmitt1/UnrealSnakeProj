@@ -50,6 +50,13 @@ public:
 	void Turn(const FInputActionValue& Value);
 
 
+
+	FVector2D CurrentDirection;
+
+	FVector2D QueuedDirection;
+
+	bool InvertedControls;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -73,7 +80,7 @@ protected:
 	TObjectPtr<UInputAction> TurnActionPlayer1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
-	float Speed;
+	TMap<FString, float> DifficultyToSpeed;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> LoseScreenClass;
@@ -102,7 +109,6 @@ protected:
 
 
 	void SpawnTailSegment();
-	void UpdateTailPositions();
 
 	UCameraComponent* Camera;
 
@@ -116,11 +122,18 @@ protected:
 	TArray<FVector> SegmentPrevLogicPositions;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	class UInputMappingContext* IMC_WASD;
+	class UInputMappingContext* InputMappingContext_Keyboard;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	class UInputMappingContext* IMC_Arrows;
+	class UInputMappingContext* InputMappingContext_Gamepad;
 
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	class USoundBase* Crash;
+
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	class USoundBase* Eat;
+
+	FVector2D LastInputVector;
 private:
 	FVector LogicPrevPosition;   // The center of the tile we just left
 	FVector LogicTargetPosition; // The center of the tile we are moving toward
@@ -128,9 +141,8 @@ private:
 
 	void SelectNewTargetTile();
 
-	float snakeTileSize;
+	float SnakeTileSize;
 
-	FVector QueuedDirection;
-	FVector CurrentDirection;
-	FVector2D LastInputVector;
+	float Speed;
+
 };

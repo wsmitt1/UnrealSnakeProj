@@ -18,6 +18,9 @@ public:
     // How much score this fruit gives
     int32 ScoreValue = 10;
 
+    UPROPERTY(EditAnywhere, Category = "Fruit Settings")
+    bool InvertUserControls; // Invert user controls when they eat ?
+
 protected:
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USphereComponent* CollisionSphere;

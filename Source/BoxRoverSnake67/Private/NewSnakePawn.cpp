@@ -20,6 +20,7 @@
 #include "FruitSpawner.h"
 #include "SnakePlayerState.h"
 #include "GridManager.h"
+#include "SnakeGameInstance.h"
 
 // Sets default values
 
@@ -54,6 +55,19 @@ void ANewSnakePawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Get speed based on GameInstance difficulty variable
+	USnakeGameInstance* GI = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (GI)
+	{
+		if (DifficultyToSpeed.Contains(GI->Difficulty))
+		{
+			Speed = DifficultyToSpeed[GI->Difficulty];
+		}
+		else
+		{
+			Speed = 100.0f; // Default speed if difficulty not found
+		}
+	}
 
 
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ANewSnakePawn::OnOverlapBegin);
@@ -61,7 +75,7 @@ void ANewSnakePawn::BeginPlay()
 	// Start at our current grid position
 	LogicPrevPosition = GetActorLocation();
 	LogicTargetPosition = LogicPrevPosition;
-	MovementInterpolation = 1.0f; 
+	MovementInterpolation = 1.0f;
 
 
 	SegmentLogicPositions.Add(LogicPrevPosition);
@@ -180,7 +194,7 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 void ANewSnakePawn::ShowLoseScreen()
 {
 	Speed = 0.0f;
-
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), Crash, GetActorLocation(), 1.5f, 1.0f, 0.2f);
 	if (LoseScreenClass)
 	{
 		UUserWidget* LoseWidget = CreateWidget<UUserWidget>(GetWorld(), LoseScreenClass);
@@ -230,7 +244,7 @@ void ANewSnakePawn::Turn(const FInputActionValue& Value)
 
 	if (Input2D.IsZero() == false) {
 		if (Input2D.Length() <= 1.0f) { // Ignore diagonals: may be changed later 
-			CurrentDirection = Input2D.GetSafeNormal(); 
+			CurrentDirection = InvertedControls ? -Input2D.GetSafeNormal() : Input2D.GetSafeNormal();
 
 		}
 	}
@@ -248,7 +262,19 @@ void ANewSnakePawn::EatFruit(AActor* FruitActor)
 		PS->AddScore(Cast<AFruit>(FruitActor)->ScoreValue);
 	}
 
+	if (Cast<AFruit>(FruitActor)->InvertUserControls)
+	{
+		InvertedControls = !InvertedControls;
+	}
+
 	FruitActor->Destroy();
+
+	// play eat sound
+	if (Eat)
+	{
+		// Use GetWorld() as the WorldContextObject to match the PlaySoundAtLocation overload
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Eat, GetActorLocation());
+	}
 	
 	AFruitSpawner* Spawner = Cast<AFruitSpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AFruitSpawner::StaticClass()));
 	if (Spawner)
@@ -284,12 +310,12 @@ void ANewSnakePawn::PossessedBy(AController* NewController)
 				int32 ControllerId = LocalPlayer->GetControllerId();
 				if (ControllerId == 0) {
 					UE_LOG(LogTemp, Warning, TEXT("Adding WASD Mapping Context for Player %d"), ControllerId);
-					Subsystem->AddMappingContext(IMC_WASD, 0);
+					Subsystem->AddMappingContext(InputMappingContext_Keyboard, 0);
 				}
 				else if (ControllerId == 1) {
 
 					UE_LOG(LogTemp, Warning, TEXT("Adding Arrow Keys Mapping Context for Player %d"), ControllerId);
-					Subsystem->AddMappingContext(IMC_Arrows, 1);
+					Subsystem->AddMappingContext(InputMappingContext_Gamepad, 1);
 				}
 				UE_LOG(LogTemp, Warning, TEXT("Mapping Context Added for Player %d"), ControllerId);
 			}

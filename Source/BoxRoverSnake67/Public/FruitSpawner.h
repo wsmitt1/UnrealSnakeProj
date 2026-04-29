@@ -21,6 +21,9 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Spawning")
     TSubclassOf<AFruit> FruitClass;
 
+    UPROPERTY(EditAnywhere, Category = "Spawning")
+    TSubclassOf<AFruit> ExtremeFruit;
+
     // We store a reference to the grid manager
     UPROPERTY(EditInstanceOnly, Category = "Spawning")
     AGridManager* GridManager;

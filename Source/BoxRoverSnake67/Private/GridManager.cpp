@@ -2,6 +2,8 @@
 
 
 #include "GridManager.h"
+#include "SnakeGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AGridManager::AGridManager()
@@ -15,11 +17,12 @@ AGridManager::AGridManager()
 void AGridManager::BeginPlay()
 {
 	Super::BeginPlay();
-	GenerateGrid();
+    USnakeGameInstance* GI = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	GenerateGrid(GI->Difficulty == "Extreme" ? 2 : (GI->Difficulty == "Hard" ? 1 : 0));
 }
 
 
-void AGridManager::GenerateGrid()
+void AGridManager::GenerateGrid(int32 PaddingThickness)
 {
     // 1. Prepare the array size
     GridData.SetNum(GridWidth * GridHeight);
@@ -51,6 +54,23 @@ void AGridManager::GenerateGrid()
 				{
 					NewWall->Tags.Add(FName("Wall")); // Add the wall tag so the Snake knows like those who knows
 				}
+            }
+            if (PaddingThickness > 0 && (x - 1 < PaddingThickness || x + 1 >= GridWidth - PaddingThickness || y - 1 < PaddingThickness || y + 1 >= GridHeight - PaddingThickness))
+            {
+                GridData[GetIndex(x, y)] = ETileType::Wall;
+
+                // Spawn the actual actor for the wall
+                FVector SpawnLocation = GetActorLocation() + FVector(x * TileSize, y * TileSize, TileSize / 2);
+                SpawnLocation -= FVector((GridWidth * TileSize) / 2 - TileSize / 2, (GridHeight * TileSize) / 2 - TileSize / 2, 0); // Center the grid around the origin
+                FActorSpawnParameters SpawnParams;
+                SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+                AActor* NewWall = GetWorld()->SpawnActor<AActor>(WallClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+
+                if (NewWall)
+                {
+                    NewWall->Tags.Add(FName("Wall")); // Add the wall tag so the Snake knows like those who knows
+                }
             }
         }
     }
