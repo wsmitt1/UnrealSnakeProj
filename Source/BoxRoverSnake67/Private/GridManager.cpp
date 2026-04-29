@@ -95,4 +95,13 @@ FVector AGridManager::GetRandomUnoccupiedWorldPosition()
     return WorldPos;
 }
 
-
+FVector AGridManager::GetWorldPositionForGridCell(int32 X, int32 Y)
+{
+    // Match the SpawnLocation centering logic from GenerateGrid()
+    FVector WorldPos = GetActorLocation()
+        + FVector(X * TileSize, Y * TileSize, TileSize / 2)
+        - FVector((GridWidth * TileSize) / 2 - TileSize / 2,
+                  (GridHeight * TileSize) / 2 - TileSize / 2,
+                  0.0f);
+    return WorldPos;
+}

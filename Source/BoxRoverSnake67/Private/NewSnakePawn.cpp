@@ -27,14 +27,14 @@ ANewSnakePawn::ANewSnakePawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
+	//AutoPossessPlayer = EAutoReceiveInput::Player0; // Possesses pawn manually in GameMode instead now.
 
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("SnakeRoot"));
 	RootComponent = CollisionSphere;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 700.0f; // Distance from the pawn
+	SpringArm->TargetArmLength = 1000.0f; // Distance from the pawn
 	SpringArm->bUsePawnControlRotation = false; // Don't rotate the arm based on the controller
 	SpringArm->SetUsingAbsoluteRotation(true);
 	SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f)); // Look down at the pawn
@@ -55,18 +55,7 @@ void ANewSnakePawn::BeginPlay()
 	Super::BeginPlay();
 
 
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
 
-		PC->SetShowMouseCursor(false);
-		FInputModeGameOnly InputMode;
-		PC->SetInputMode(InputMode);
-
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(InputMapping, 0);
-		}
-	}
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &ANewSnakePawn::OnOverlapBegin);
 	float TileSize = Cast<AGridManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGridManager::StaticClass()))->TileSize;
 	// Start at our current grid position
@@ -138,7 +127,26 @@ void ANewSnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Started, this, &ANewSnakePawn::Turn);
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			if (ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
+			{
+				if (LocalPlayer->GetControllerId() == 0) { // Player 1
+					if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
+					{
+						EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Started, this, &ANewSnakePawn::Turn);
+						UE_LOG(LogTemp, Warning, TEXT("Bound TurnAction to Player 0"));
+					}
+				}
+				else { // Player 2 or more
+					if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
+					{
+						EnhancedInputComponent->BindAction(TurnActionPlayer1, ETriggerEvent::Started, this, &ANewSnakePawn::Turn);
+						UE_LOG(LogTemp, Warning, TEXT("Bound TurnActionPlayer1 to Player 1"));
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -157,15 +165,13 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		{
 			EatFruit(OtherActor);
 		}
-		else if (OtherActor->IsA(TailClass))
+		else if (OtherActor->IsA(TailClass) or (OtherActor->IsA(ANewSnakePawn::StaticClass()) && OtherActor != this))
 		{
 			// 2. Is it NOT the first segment (the neck)?
 			// We check index 0 because that's the one usually "touching" the head
 			if (TailSegments.Num() > 0 && OtherActor != TailSegments[0])
 			{
-				// GAME OVER LOGIC
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("KILLED BY TAIL")); // some stuff still needs to be not buns for this to work, but this is the general idea. We want to make sure the player can't just turn 180 and eat their neck and be fine, but we also don't want them to lose by just brushing against the first segment as they turn.
-				// Destroy() or ResetGame()
+				ShowLoseScreen();
 			}
 		}
 	}
@@ -251,5 +257,43 @@ void ANewSnakePawn::EatFruit(AActor* FruitActor)
 	}
 	
 	SpawnTailSegment();
+}
+
+void ANewSnakePawn::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	APlayerController* PC = Cast<APlayerController>(NewController);
+	if (PC)
+	{
+		// 1. Set Input Mode
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+		PC->bShowMouseCursor = false;
+
+		// 2. Add Enhanced Input Mapping using the LocalPlayer's subsystem and log controller id
+		ULocalPlayer* LocalPlayer = PC->GetLocalPlayer();
+		if (LocalPlayer)
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
+			{
+				// Make sure 'InputMapping' is assigned in your BP!
+
+
+				// Log using the LocalPlayer's controller id (valid method on ULocalPlayer)
+				int32 ControllerId = LocalPlayer->GetControllerId();
+				if (ControllerId == 0) {
+					UE_LOG(LogTemp, Warning, TEXT("Adding WASD Mapping Context for Player %d"), ControllerId);
+					Subsystem->AddMappingContext(IMC_WASD, 0);
+				}
+				else if (ControllerId == 1) {
+
+					UE_LOG(LogTemp, Warning, TEXT("Adding Arrow Keys Mapping Context for Player %d"), ControllerId);
+					Subsystem->AddMappingContext(IMC_Arrows, 1);
+				}
+				UE_LOG(LogTemp, Warning, TEXT("Mapping Context Added for Player %d"), ControllerId);
+			}
+		}
+	}
 }
 

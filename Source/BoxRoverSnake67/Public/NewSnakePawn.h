@@ -38,6 +38,7 @@ class BOXROVERSNAKE67_API ANewSnakePawn : public APawn
 public:
 	// Sets default values for this pawn's properties
 
+	void PossessedBy(AController* NewController) override;
 
 	ANewSnakePawn();
 	// Called every frame
@@ -48,9 +49,6 @@ public:
 
 	void Turn(const FInputActionValue& Value);
 
-
-
-	FVector2D CurrentDirection;
 
 protected:
 	// Called when the game starts or when spawned
@@ -70,6 +68,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> TurnAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> TurnActionPlayer1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
 	float Speed;
@@ -114,6 +115,12 @@ protected:
 	// We need to know where they were in the previous step to Lerp correctly
 	TArray<FVector> SegmentPrevLogicPositions;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputMappingContext* IMC_WASD;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputMappingContext* IMC_Arrows;
+
 private:
 	FVector LogicPrevPosition;   // The center of the tile we just left
 	FVector LogicTargetPosition; // The center of the tile we are moving toward
@@ -123,4 +130,7 @@ private:
 
 	float snakeTileSize;
 
+	FVector QueuedDirection;
+	FVector CurrentDirection;
+	FVector2D LastInputVector;
 };

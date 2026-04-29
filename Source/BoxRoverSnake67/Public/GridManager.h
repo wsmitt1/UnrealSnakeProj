@@ -22,6 +22,8 @@ public:
 
     FVector GetRandomUnoccupiedWorldPosition();
 
+    FVector GetWorldPositionForGridCell(int32 X, int32 Y);
+
     UPROPERTY(EditAnywhere, Category = "Grid")
     int32 GridWidth = 12;
 
