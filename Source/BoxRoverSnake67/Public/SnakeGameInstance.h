@@ -22,6 +22,7 @@ UCLASS()
 class BOXROVERSNAKE67_API USnakeGameInstance : public UGameInstance {
 	GENERATED_BODY()
 public:
+	USnakeGameInstance(const FObjectInitializer& ObjectInitializer);
 	UPROPERTY(BlueprintReadWrite, Category = "Game Settings")
 	bool bIsMultiplayer = false;
 
