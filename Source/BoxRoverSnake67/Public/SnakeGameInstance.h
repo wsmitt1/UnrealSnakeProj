@@ -29,6 +29,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Game Settings")
 	FString Difficulty = "Normal";
 
+	UPROPERTY(BlueprintReadWrite, Category = "Game Results")
+	int32 FinalScore_P1 = 0;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Game Results")
+	int32 FinalScore_P2 = 0;
+
 	UFUNCTION(BlueprintCallable, Category = "State Machine")
 	void SetGameState(EGameState NewState) {
 		if (CurrentGameState != NewState) {
