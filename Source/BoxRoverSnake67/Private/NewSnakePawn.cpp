@@ -266,6 +266,21 @@ void ANewSnakePawn::EatFruit(AActor* FruitActor)
 	{
 		InvertedControls = !InvertedControls;
 	}
+	FVector SpawnLocation = FruitActor->GetActorLocation();
+	if (EatFruitEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			EatFruitEffect,
+			SpawnLocation,
+			FRotator::ZeroRotator,
+			FVector(1.0f),
+			true,
+			true,
+			ENCPoolMethod::None,
+			true
+		);
+	}
 
 	FruitActor->Destroy();
 
@@ -275,13 +290,11 @@ void ANewSnakePawn::EatFruit(AActor* FruitActor)
 		// Use GetWorld() as the WorldContextObject to match the PlaySoundAtLocation overload
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Eat, GetActorLocation());
 	}
-	
 	AFruitSpawner* Spawner = Cast<AFruitSpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AFruitSpawner::StaticClass()));
 	if (Spawner)
 	{
 		Spawner->SpawnNewFruit();
 	}
-	
 	SpawnTailSegment();
 }
 

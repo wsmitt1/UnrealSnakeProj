@@ -23,6 +23,15 @@ void ASnakeGameMode::BeginPlay() {
 }
 void ASnakeGameMode::StartSingleplayerMatch() {
 	UE_LOG(LogTemp, Warning, TEXT("Starting Singleplayer Match"));
+
+	APlayerController* PC1 = UGameplayStatics::GetPlayerController(this, 1);
+	if (PC1)
+	{
+		// This removes the player from the GameInstance and collapses the split-screen
+		UGameplayStatics::RemovePlayer(PC1, true);
+		UE_LOG(LogTemp, Warning, TEXT("Removed Player 1 for Singleplayer Mode"));
+	}
+
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	
 	myGridManager = Cast<AGridManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AGridManager::StaticClass()));

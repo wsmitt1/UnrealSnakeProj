@@ -15,7 +15,8 @@
 #include "GameFramework/SpringArmComponent.h" // Added include for USpringArmComponent
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 
 // Provide an IntelliSense-only fallback for GENERATED_BODY() to avoid E0077
@@ -91,6 +92,9 @@ protected:
     // The list of all spawned tail segments
     UPROPERTY()
     TArray<AActor*> TailSegments;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UNiagaraSystem* EatFruitEffect;
 
     // Stores the sequence of logic positions for segments to follow
     TArray<FVector> TailPathHistory;
