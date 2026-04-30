@@ -197,26 +197,14 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 
 void ANewSnakePawn::ShowLoseScreen()
 {
+	USnakeGameInstance* GI = Cast<USnakeGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (GI)
+	{
+		GI->SetGameState(EGameState::Outro);
+	}
 	Speed = 0.0f;
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), Crash, GetActorLocation(), 1.5f, 1.0f, 0.2f);
-	if (LoseScreenClass)
-	{
-		UUserWidget* LoseWidget = CreateWidget<UUserWidget>(GetWorld(), LoseScreenClass);
-		if (LoseWidget)
-		{
-			LoseWidget->AddToViewport();
-
-			// Give control to the mouse
-			APlayerController* PC = Cast<APlayerController>(GetController());
-			if (PC)
-			{
-				PC->SetShowMouseCursor(true);
-				FInputModeUIOnly InputMode;
-				InputMode.SetWidgetToFocus(LoseWidget->TakeWidget());
-				PC->SetInputMode(InputMode);
-			}
-		}
-	}
+	
 }
 
 void ANewSnakePawn::SpawnTailSegment()

@@ -83,8 +83,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SnakeConfig", meta = (AllowPrivateAccess = "true"))
 	TMap<FString, float> DifficultyToSpeed;
 
-	UPROPERTY(EditAnywhere, Category = "UI")
-	TSubclassOf<UUserWidget> LoseScreenClass;
 
 	UPROPERTY(EditAnywhere, Category = "Snake")
     TSubclassOf<AActor> TailClass;
