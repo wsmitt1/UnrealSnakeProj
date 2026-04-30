@@ -179,7 +179,7 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		{
 			EatFruit(OtherActor);
 		}
-		else if (OtherActor->IsA(TailClass) or (OtherActor->IsA(ANewSnakePawn::StaticClass()) && OtherActor != this))
+		else if (OtherActor->IsA(TailClass))
 		{
 			// 2. Is it NOT the first segment (the neck)?
 			// We check index 0 because that's the one usually "touching" the head
@@ -187,6 +187,10 @@ void ANewSnakePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			{
 				ShowLoseScreen();
 			}
+		}
+		else if ((OtherActor->IsA(ANewSnakePawn::StaticClass()) && OtherActor != this)) {
+			UE_LOG(LogTemp, Warning, TEXT("Collided with another Snake!"));
+			ShowLoseScreen();
 		}
 	}
 }
